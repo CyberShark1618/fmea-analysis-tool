@@ -82,6 +82,43 @@ function deleteComponent(name) {
     }
 }
 
+function deleteAnalysis(analysisId) {
+    const analysis = analyses.find(a => a.id === analysisId);
+    if (!analysis) return;
+
+    if (confirm(`Delete analysis for "${analysis.component} - ${analysis.failureMode}"?\n\nThis will also update the fault tree.`)) {
+        // Remove from analyses array
+        analyses = analyses.filter(a => a.id !== analysisId);
+        window.analyses = analyses; // Update global reference
+
+        // Update displays
+        displayResults();
+        saveData();
+
+        // Update fault tree if it exists and is currently visible
+        if (window.faultTreeModule && faultTreeModule.treeData) {
+            // Regenerate fault tree with updated data
+            faultTreeModule.generateTree();
+        }
+
+        // Show success notification
+        showNotification(`Analysis deleted successfully. Fault tree updated.`, 'success');
+
+        // Add smooth row removal animation
+        const row = document.getElementById(`analysis-row-${analysisId}`);
+        if (row) {
+            row.style.transition = 'all 0.3s ease-out';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-20px)';
+            setTimeout(() => {
+                if (row.parentElement) {
+                    row.remove();
+                }
+            }, 300);
+        }
+    }
+}
+
 function updateComponentSelect() {
     const select = document.getElementById('component');
     select.innerHTML = '<option value="">Select component...</option>';
@@ -141,14 +178,14 @@ function clearForm() {
 
 function displayResults() {
     const resultsList = document.getElementById('resultsList');
-    
+
     if (analyses.length === 0) {
         resultsList.innerHTML = '<p>No analysis results yet.</p>';
         return;
     }
-    
+
     const sortedAnalyses = analyses.sort((a, b) => b.rpn - a.rpn);
-    
+
     resultsList.innerHTML = `
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
@@ -159,17 +196,26 @@ function displayResults() {
                     <th style="padding: 12px; border: 1px solid #ddd;">O</th>
                     <th style="padding: 12px; border: 1px solid #ddd;">D</th>
                     <th style="padding: 12px; border: 1px solid #ddd;">RPN</th>
+                    <th style="padding: 12px; border: 1px solid #ddd; width: 100px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 ${sortedAnalyses.map(analysis => `
-                    <tr>
+                    <tr id="analysis-row-${analysis.id}">
                         <td style="padding: 12px; border: 1px solid #ddd;">${analysis.component}</td>
                         <td style="padding: 12px; border: 1px solid #ddd;">${analysis.failureMode}</td>
                         <td style="padding: 12px; border: 1px solid #ddd;">${analysis.severity}</td>
                         <td style="padding: 12px; border: 1px solid #ddd;">${analysis.occurrence}</td>
                         <td style="padding: 12px; border: 1px solid #ddd;">${analysis.detection}</td>
                         <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: ${analysis.rpn >= 200 ? '#dc3545' : analysis.rpn >= 100 ? '#ffc107' : '#28a745'};">${analysis.rpn}</td>
+                        <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">
+                            <button class="btn delete-btn" onclick="deleteAnalysis(${analysis.id})" title="Delete this analysis">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Delete
+                            </button>
+                        </td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -310,18 +356,18 @@ function toggleTheme() {
 // Add sample data for demonstration
 function addSampleData() {
     if (components.length === 0 && analyses.length === 0) {
-        // Add sample components
-        components = ['Engine', 'Brake System', 'Electrical System', 'Fuel System'];
+        // Add sample banking components
+        components = ['ATM Network', 'Online Banking Platform', 'Payment Processing', 'Core Banking System', 'Security Infrastructure'];
 
-        // Add sample analyses
+        // Add sample banking analyses
         analyses = [
             {
                 id: Date.now() + 1,
-                component: 'Engine',
-                function: 'Provide propulsion power',
-                failureMode: 'Engine overheating',
-                failureEffect: 'Loss of power, potential engine damage',
-                failureCause: 'Coolant leak or radiator blockage',
+                component: 'ATM Network',
+                function: 'Provide 24/7 cash withdrawal and banking services',
+                failureMode: 'ATM communication failure',
+                failureEffect: 'Customer unable to access funds, service disruption',
+                failureCause: 'Network connectivity issues or server downtime',
                 severity: 8,
                 occurrence: 4,
                 detection: 6,
@@ -329,11 +375,11 @@ function addSampleData() {
             },
             {
                 id: Date.now() + 2,
-                component: 'Brake System',
-                function: 'Stop vehicle safely',
-                failureMode: 'Brake fluid leak',
-                failureEffect: 'Reduced braking performance',
-                failureCause: 'Worn brake lines or seals',
+                component: 'Online Banking Platform',
+                function: 'Enable secure digital banking transactions',
+                failureMode: 'Authentication system failure',
+                failureEffect: 'Customers locked out, potential security breach',
+                failureCause: 'Database corruption or authentication server failure',
                 severity: 9,
                 occurrence: 3,
                 detection: 7,
@@ -341,27 +387,51 @@ function addSampleData() {
             },
             {
                 id: Date.now() + 3,
-                component: 'Electrical System',
-                function: 'Power vehicle systems',
-                failureMode: 'Battery failure',
-                failureEffect: 'Vehicle won\'t start',
-                failureCause: 'Battery age or charging system failure',
-                severity: 6,
+                component: 'Payment Processing',
+                function: 'Process credit/debit card transactions',
+                failureMode: 'Transaction processing delay',
+                failureEffect: 'Payment failures, customer dissatisfaction',
+                failureCause: 'High transaction volume or system overload',
+                severity: 7,
                 occurrence: 5,
                 detection: 4,
-                rpn: 120
+                rpn: 140
             },
             {
                 id: Date.now() + 4,
-                component: 'Fuel System',
-                function: 'Deliver fuel to engine',
-                failureMode: 'Fuel pump failure',
-                failureEffect: 'Engine stalling or won\'t start',
-                failureCause: 'Pump wear or electrical failure',
-                severity: 7,
-                occurrence: 3,
+                component: 'Core Banking System',
+                function: 'Manage customer accounts and transactions',
+                failureMode: 'Database synchronization failure',
+                failureEffect: 'Incorrect account balances, transaction errors',
+                failureCause: 'Database replication lag or corruption',
+                severity: 9,
+                occurrence: 2,
+                detection: 6,
+                rpn: 108
+            },
+            {
+                id: Date.now() + 5,
+                component: 'Security Infrastructure',
+                function: 'Protect against cyber threats and fraud',
+                failureMode: 'Fraud detection system bypass',
+                failureEffect: 'Unauthorized transactions, financial losses',
+                failureCause: 'Outdated fraud patterns or system configuration error',
+                severity: 10,
+                occurrence: 2,
                 detection: 5,
-                rpn: 105
+                rpn: 100
+            },
+            {
+                id: Date.now() + 6,
+                component: 'Online Banking Platform',
+                function: 'Provide mobile banking services',
+                failureMode: 'Mobile app crashes',
+                failureEffect: 'Service unavailable, customer frustration',
+                failureCause: 'Software bugs or insufficient server capacity',
+                severity: 6,
+                occurrence: 4,
+                detection: 3,
+                rpn: 72
             }
         ];
 

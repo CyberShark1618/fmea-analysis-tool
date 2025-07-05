@@ -29,6 +29,7 @@ class FaultTreeModule {
     // Generate fault tree from FMEA data
     generateTree() {
         if (!window.analyses || analyses.length === 0) {
+            this.showEmptyState();
             this.showNotification('No FMEA analysis data available. Please create some analyses first.', 'warning');
             return;
         }
@@ -39,6 +40,28 @@ class FaultTreeModule {
         this.expandedNodes.add(this.treeData.id); // Expand root by default
         this.renderTree();
         this.showNotification('Fault tree generated successfully!', 'success');
+    }
+
+    // Show empty state when no data
+    showEmptyState() {
+        if (this.canvas && this.canvas.parentElement) {
+            this.canvas.parentElement.innerHTML = `
+                <div class="fault-tree-empty">
+                    <div class="empty-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M12 1v6m0 6v6" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="m21 12-6 0m-6 0-6 0" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="m16.24 7.76-4.24 4.24m-4.24 4.24-4.24-4.24" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="m16.24 16.24-4.24-4.24m-4.24-4.24-4.24 4.24" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                    <h3>No Fault Tree Data</h3>
+                    <p>Add some FMEA analyses to generate an interactive fault tree visualization</p>
+                </div>
+            `;
+        }
+        this.cleanup();
     }
 
     // Build hierarchical tree structure from FMEA data
