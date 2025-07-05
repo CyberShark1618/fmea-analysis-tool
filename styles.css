@@ -664,7 +664,16 @@ body::before {
     filter: brightness(1.1);
 }
 
-/* Table-specific delete button styling */
+/* Action buttons container */
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Table-specific button styling */
+table .edit-btn,
 table .delete-btn {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-sm);
@@ -673,11 +682,44 @@ table .delete-btn {
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
+    min-width: 70px;
+    justify-content: center;
 }
 
+table .edit-btn svg,
 table .delete-btn svg {
     width: 12px;
     height: 12px;
+}
+
+/* Edit button specific styling */
+.edit-btn {
+    background: linear-gradient(135deg, #007AFF, #5856D6);
+    color: white;
+    border: 1px solid rgba(0, 122, 255, 0.3);
+}
+
+.edit-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow:
+        0 8px 32px rgba(0, 122, 255, 0.4),
+        0 1px 0 rgba(255, 255, 255, 0.3) inset;
+    filter: brightness(1.1);
+}
+
+/* Secondary button for cancel */
+.secondary-btn {
+    background: linear-gradient(135deg, #8E8E93, #636366);
+    color: white;
+    border: 1px solid rgba(142, 142, 147, 0.3);
+}
+
+.secondary-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow:
+        0 8px 32px rgba(142, 142, 147, 0.4),
+        0 1px 0 rgba(255, 255, 255, 0.3) inset;
+    filter: brightness(1.1);
 }
 
 /* Row animation for deletion */

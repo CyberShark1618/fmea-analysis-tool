@@ -82,6 +82,81 @@ function deleteComponent(name) {
     }
 }
 
+function editAnalysis(analysisId) {
+    const analysis = analyses.find(a => a.id === analysisId);
+    if (!analysis) return;
+
+    // Store the analysis being edited
+    window.editingAnalysisId = analysisId;
+
+    // Populate the form with existing data
+    document.getElementById('component').value = analysis.component;
+    document.getElementById('function').value = analysis.function;
+    document.getElementById('failureMode').value = analysis.failureMode;
+    document.getElementById('failureEffect').value = analysis.failureEffect;
+    document.getElementById('failureCause').value = analysis.failureCause;
+    document.getElementById('severity').value = analysis.severity;
+    document.getElementById('occurrence').value = analysis.occurrence;
+    document.getElementById('detection').value = analysis.detection;
+
+    // Update RPN display
+    updateRPN();
+
+    // Switch to analysis tab
+    showSection('analysis');
+
+    // Change submit button to update mode
+    const submitBtn = document.querySelector('#analysisForm button[type="submit"]');
+    submitBtn.textContent = 'Update Analysis';
+    submitBtn.style.background = 'linear-gradient(135deg, #FF9500, #FF6B35)';
+
+    // Show cancel edit button
+    showCancelEditButton();
+
+    // Scroll to top of form
+    document.getElementById('analysisForm').scrollIntoView({ behavior: 'smooth' });
+
+    showNotification(`Editing analysis: ${analysis.component} - ${analysis.failureMode}`, 'info');
+}
+
+function showCancelEditButton() {
+    // Check if cancel button already exists
+    if (document.getElementById('cancelEditBtn')) return;
+
+    const submitBtn = document.querySelector('#analysisForm button[type="submit"]');
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.id = 'cancelEditBtn';
+    cancelBtn.className = 'btn secondary-btn';
+    cancelBtn.textContent = 'Cancel Edit';
+    cancelBtn.style.marginLeft = '10px';
+    cancelBtn.onclick = cancelEdit;
+
+    submitBtn.parentNode.insertBefore(cancelBtn, submitBtn.nextSibling);
+}
+
+function cancelEdit() {
+    // Clear editing state
+    window.editingAnalysisId = null;
+
+    // Reset form
+    document.getElementById('analysisForm').reset();
+    updateRPN();
+
+    // Reset submit button
+    const submitBtn = document.querySelector('#analysisForm button[type="submit"]');
+    submitBtn.textContent = 'Add Analysis';
+    submitBtn.style.background = '';
+
+    // Remove cancel button
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) {
+        cancelBtn.remove();
+    }
+
+    showNotification('Edit cancelled', 'info');
+}
+
 function deleteAnalysis(analysisId) {
     const analysis = analyses.find(a => a.id === analysisId);
     if (!analysis) return;
@@ -144,8 +219,7 @@ function calculateRPN() {
 function submitAnalysis(event) {
     event.preventDefault();
 
-    const analysis = {
-        id: Date.now(),
+    const analysisData = {
         component: document.getElementById('component').value,
         function: document.getElementById('function').value,
         failureMode: document.getElementById('failureMode').value,
@@ -157,11 +231,32 @@ function submitAnalysis(event) {
         rpn: calculateRPN()
     };
 
-    analyses.push(analysis);
+    if (window.editingAnalysisId) {
+        // Update existing analysis
+        const index = analyses.findIndex(a => a.id === window.editingAnalysisId);
+        if (index !== -1) {
+            analyses[index] = { ...analysisData, id: window.editingAnalysisId };
+            showNotification('Analysis updated successfully!', 'success');
+        }
+
+        // Reset edit mode
+        cancelEdit();
+    } else {
+        // Add new analysis
+        const analysis = { ...analysisData, id: Date.now() };
+        analyses.push(analysis);
+        showNotification('Analysis added successfully!', 'success');
+        clearForm();
+    }
+
     window.analyses = analyses; // Update global reference
-    alert('Analysis saved successfully!');
-    clearForm();
+    displayResults();
     saveData();
+
+    // Update fault tree if it exists and is currently visible
+    if (window.faultTreeModule && faultTreeModule.treeData) {
+        faultTreeModule.generateTree();
+    }
 }
 
 function clearForm() {
@@ -209,12 +304,21 @@ function displayResults() {
                         <td style="padding: 12px; border: 1px solid #ddd;">${analysis.detection}</td>
                         <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: ${analysis.rpn >= 200 ? '#dc3545' : analysis.rpn >= 100 ? '#ffc107' : '#28a745'};">${analysis.rpn}</td>
                         <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">
-                            <button class="btn delete-btn" onclick="deleteAnalysis(${analysis.id})" title="Delete this analysis">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Delete
-                            </button>
+                            <div class="action-buttons">
+                                <button class="btn edit-btn" onclick="editAnalysis(${analysis.id})" title="Edit this analysis">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Edit
+                                </button>
+                                <button class="btn delete-btn" onclick="deleteAnalysis(${analysis.id})" title="Delete this analysis">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                        <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Delete
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `).join('')}
