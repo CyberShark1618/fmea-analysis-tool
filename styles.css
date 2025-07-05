@@ -1191,6 +1191,53 @@ tr:hover td {
     border-color: rgba(255, 255, 255, 0.15);
 }
 
+/* Footer */
+.footer {
+    margin-top: var(--spacing-4xl);
+    padding: var(--spacing-2xl) 0;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(0, 122, 255, 0.3),
+        rgba(88, 86, 214, 0.3),
+        transparent);
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-xl);
+    text-align: center;
+}
+
+.footer-content p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme footer */
+.dark-theme .footer {
+    background: rgba(28, 28, 30, 0.1);
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
