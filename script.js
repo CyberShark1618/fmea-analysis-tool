@@ -27,7 +27,7 @@ function showSection(sectionName) {
     if (sectionName === 'results') {
         displayResults();
     } else if (sectionName === 'faultTree') {
-        // Auto-generate tree if we have data and no tree exists
+        // Auto-generate fully expanded tree if we have data and no tree exists
         if (analyses.length > 0 && faultTreeModule && !faultTreeModule.treeData) {
             setTimeout(() => faultTreeModule.generateTree(), 100);
         }

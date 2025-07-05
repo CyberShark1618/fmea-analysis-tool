@@ -37,9 +37,25 @@ class FaultTreeModule {
         console.log('Generating fault tree from FMEA data...');
         this.treeData = this.buildTreeStructure(analyses);
         this.expandedNodes.clear();
-        this.expandedNodes.add(this.treeData.id); // Expand root by default
+
+        // Expand all nodes by default for better initial view
+        this.expandAllNodesByDefault(this.treeData);
+
         this.renderTree();
-        this.showNotification('Fault tree generated successfully!', 'success');
+        this.showNotification('Fault tree generated and fully expanded!', 'success');
+    }
+
+    // Recursively expand all nodes by default
+    expandAllNodesByDefault(node) {
+        if (!node) return;
+
+        this.expandedNodes.add(node.id);
+
+        if (node.children && node.children.length > 0) {
+            node.children.forEach(child => {
+                this.expandAllNodesByDefault(child);
+            });
+        }
     }
 
     // Show empty state when no data
@@ -433,7 +449,7 @@ class FaultTreeModule {
         });
         this.calculateLayout(this.treeData);
         this.needsRedraw = true;
-        this.showNotification('All nodes expanded', 'info');
+        this.showNotification('Full fault tree expanded - all failure paths visible', 'info');
     }
 
     // Collapse all nodes
@@ -442,7 +458,7 @@ class FaultTreeModule {
         this.expandedNodes.add(this.treeData.id); // Keep root expanded
         this.calculateLayout(this.treeData);
         this.needsRedraw = true;
-        this.showNotification('All nodes collapsed', 'info');
+        this.showNotification('Tree collapsed to root level', 'info');
     }
 
     // Collect all node IDs recursively
