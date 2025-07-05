@@ -1190,6 +1190,22 @@ tr:hover td {
     image-rendering: crisp-edges;
     will-change: transform;
     transform: translateZ(0); /* Force hardware acceleration */
+    contain: layout style paint; /* CSS containment for performance */
+}
+
+/* Optimize expensive operations */
+* {
+    /* Reduce layout thrashing */
+    box-sizing: border-box;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* Zoom Controls */

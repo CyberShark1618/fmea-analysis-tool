@@ -19,7 +19,10 @@ class FaultTreeModule {
         this.visibleNodes = [];
         this.needsRedraw = true;
         this.lastHoverCheck = 0;
-        this.hoverThrottle = 16; // ~60fps max for hover checks
+        this.hoverThrottle = 32; // Reduce to 30fps for hover checks
+        this.lastDrawTime = 0;
+        this.drawThrottle = 16; // 60fps max for drawing
+        this.isDrawing = false;
 
         this.init();
     }
@@ -205,15 +208,35 @@ class FaultTreeModule {
         }
     }
 
-    // Request single frame when needed
+    // Request single frame when needed (throttled)
     requestRedraw() {
-        if (!this.needsRedraw) {
+        if (!this.needsRedraw && !this.isDrawing) {
             this.needsRedraw = true;
+            const now = performance.now();
+
+            if (now - this.lastDrawTime >= this.drawThrottle) {
+                this.performDraw();
+            } else {
+                // Throttle drawing to prevent excessive redraws
+                setTimeout(() => {
+                    if (this.needsRedraw) {
+                        this.performDraw();
+                    }
+                }, this.drawThrottle - (now - this.lastDrawTime));
+            }
+        }
+    }
+
+    performDraw() {
+        if (this.needsRedraw && !this.isDrawing) {
+            this.isDrawing = true;
+            this.lastDrawTime = performance.now();
             requestAnimationFrame(() => {
                 if (this.needsRedraw) {
                     this.draw();
                     this.needsRedraw = false;
                 }
+                this.isDrawing = false;
             });
         }
     }
@@ -239,15 +262,33 @@ class FaultTreeModule {
         this.ctx.restore();
     }
 
-    // Draw all nodes using Canvas
+    // Draw all nodes using Canvas (with viewport culling)
     drawNodes(node) {
         if (!node) return;
 
-        this.drawNode(node);
+        // Only draw if node is potentially visible
+        if (this.isNodeInViewport(node)) {
+            this.drawNode(node);
+        }
 
         if (node.children && this.expandedNodes.has(node.id)) {
             node.children.forEach(child => this.drawNodes(child));
         }
+    }
+
+    // Check if node is in viewport (with margin for smooth scrolling)
+    isNodeInViewport(node) {
+        const canvasWidth = this.canvas.width / window.devicePixelRatio;
+        const canvasHeight = this.canvas.height / window.devicePixelRatio;
+        const margin = 100; // Extra margin for smooth scrolling
+
+        const nodeScreenX = (node.x * this.currentTransform.k) + this.currentTransform.x;
+        const nodeScreenY = (node.y * this.currentTransform.k) + this.currentTransform.y;
+
+        return !(nodeScreenX < -this.nodeWidth - margin ||
+                nodeScreenX > canvasWidth + this.nodeWidth + margin ||
+                nodeScreenY < -this.nodeHeight - margin ||
+                nodeScreenY > canvasHeight + this.nodeHeight + margin);
     }
 
     // Draw a single node (optimized)
@@ -256,17 +297,6 @@ class FaultTreeModule {
         const x = node.x - this.nodeWidth / 2;
         const y = node.y - this.nodeHeight / 2;
         const isHovered = this.hoveredNode === node;
-
-        // Viewport culling - skip if node is off-screen
-        const canvasWidth = this.canvas.width / window.devicePixelRatio;
-        const canvasHeight = this.canvas.height / window.devicePixelRatio;
-        const nodeScreenX = (node.x * this.currentTransform.k) + this.currentTransform.x;
-        const nodeScreenY = (node.y * this.currentTransform.k) + this.currentTransform.y;
-
-        if (nodeScreenX < -this.nodeWidth || nodeScreenX > canvasWidth + this.nodeWidth ||
-            nodeScreenY < -this.nodeHeight || nodeScreenY > canvasHeight + this.nodeHeight) {
-            return; // Skip off-screen nodes
-        }
 
         // Get colors based on node type and theme
         const colors = this.getNodeColors(node, isHovered);
@@ -535,12 +565,14 @@ class FaultTreeModule {
                 startPoint = mousePos;
             } else {
                 // Throttled hover detection for performance
-                const now = Date.now();
+                const now = performance.now();
                 if (now - this.lastHoverCheck > this.hoverThrottle) {
                     const hoveredNode = this.getNodeAtPoint(mousePos.x, mousePos.y);
                     if (hoveredNode !== this.hoveredNode) {
                         this.hoveredNode = hoveredNode;
+                        // Only redraw if hover state actually changed
                         this.requestRedraw();
+                        // Batch DOM updates
                         this.canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
                     }
                     this.lastHoverCheck = now;
@@ -719,15 +751,35 @@ class FaultTreeModule {
         this.requestRedraw();
     }
 
-    // Cleanup function
+    // Enhanced cleanup function
     cleanup() {
         if (this.animationFrame) {
             cancelAnimationFrame(this.animationFrame);
             this.animationFrame = null;
         }
+
+        // Clear all caches and references
         this.renderCache.clear();
         this.visibleNodes = [];
         this.hoveredNode = null;
+        this.needsRedraw = false;
+        this.isDrawing = false;
+
+        // Remove event listeners to prevent memory leaks
+        if (this.canvas) {
+            this.canvas.removeEventListener('mousedown', this.mouseDownHandler);
+            this.canvas.removeEventListener('mousemove', this.mouseMoveHandler);
+            this.canvas.removeEventListener('mouseup', this.mouseUpHandler);
+            this.canvas.removeEventListener('wheel', this.wheelHandler);
+            this.canvas.removeEventListener('touchstart', this.touchStartHandler);
+            this.canvas.removeEventListener('touchmove', this.touchMoveHandler);
+            this.canvas.removeEventListener('touchend', this.touchEndHandler);
+        }
+
+        // Clear canvas context
+        if (this.ctx) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
     }
 
     // Destroy the module

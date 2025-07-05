@@ -3,6 +3,19 @@ let components = [];
 let analyses = [];
 let currentTheme = 'light';
 
+// Performance optimization: Debounce function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Make analyses globally accessible for fault tree module
 window.analyses = analyses;
 window.components = components;
@@ -115,7 +128,7 @@ function editAnalysis(analysisId) {
     document.getElementById('detection').value = analysis.detection;
 
     // Update RPN display
-    updateRPN();
+    calculateRPN();
 
     // Switch to analysis tab
     showSection('analysis');
@@ -140,6 +153,10 @@ function editAnalysis(analysisId) {
 window.editAnalysis = editAnalysis;
 window.deleteAnalysis = deleteAnalysis;
 
+// Debug: Test if functions are accessible
+console.log('editAnalysis function:', typeof window.editAnalysis);
+console.log('deleteAnalysis function:', typeof window.deleteAnalysis);
+
 function showCancelEditButton() {
     // Check if cancel button already exists
     if (document.getElementById('cancelEditBtn')) return;
@@ -162,7 +179,7 @@ function cancelEdit() {
 
     // Reset form
     document.getElementById('analysisForm').reset();
-    updateRPN();
+    calculateRPN();
 
     // Reset submit button
     const submitBtn = document.querySelector('#analysisForm button[type="submit"]');
@@ -294,6 +311,9 @@ function clearForm() {
     calculateRPN();
 }
 
+// Debounced version of displayResults for better performance
+const debouncedDisplayResults = debounce(displayResults, 100);
+
 function displayResults() {
     const resultsList = document.getElementById('resultsList');
 
@@ -304,6 +324,7 @@ function displayResults() {
 
     const sortedAnalyses = analyses.sort((a, b) => b.rpn - a.rpn);
 
+    // Use template string for better performance than DOM manipulation
     resultsList.innerHTML = `
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
@@ -328,14 +349,14 @@ function displayResults() {
                         <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; color: ${analysis.rpn >= 200 ? '#dc3545' : analysis.rpn >= 100 ? '#ffc107' : '#28a745'};">${analysis.rpn}</td>
                         <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">
                             <div class="action-buttons">
-                                <button class="btn edit-btn" onclick="editAnalysis(${analysis.id})" title="Edit this analysis">
+                                <button class="btn edit-btn" data-analysis-id="${analysis.id}" data-action="edit" title="Edit this analysis">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                     Edit
                                 </button>
-                                <button class="btn delete-btn" onclick="deleteAnalysis(${analysis.id})" title="Delete this analysis">
+                                <button class="btn delete-btn" data-analysis-id="${analysis.id}" data-action="delete" title="Delete this analysis">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                         <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
@@ -620,6 +641,9 @@ document.addEventListener('DOMContentLoaded', function() {
     updateComponentsList();
     updateComponentSelect();
 
+    // Display results if any exist
+    displayResults();
+
     // Add event listeners for RPN calculation
     ['severity', 'occurrence', 'detection'].forEach(id => {
         const input = document.getElementById(id);
@@ -646,6 +670,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial RPN calculation
     calculateRPN();
+
+    // Add event delegation for edit and delete buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.edit-btn')) {
+            const button = e.target.closest('.edit-btn');
+            const analysisId = button.getAttribute('data-analysis-id');
+            console.log('Edit button clicked for analysis ID:', analysisId);
+            editAnalysis(analysisId);
+        } else if (e.target.closest('.delete-btn')) {
+            const button = e.target.closest('.delete-btn');
+            const analysisId = button.getAttribute('data-analysis-id');
+            console.log('Delete button clicked for analysis ID:', analysisId);
+            deleteAnalysis(analysisId);
+        }
+    });
 
     console.log('FMEA Tool initialized successfully');
 });
