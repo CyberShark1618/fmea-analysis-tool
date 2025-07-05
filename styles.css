@@ -268,7 +268,10 @@ body::before {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     animation: pulse-warning 2s ease-in-out infinite;
-    white-space: nowrap;
+    display: inline-block;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 @keyframes pulse-warning {
@@ -280,6 +283,15 @@ body::before {
 .dark-theme .disclaimer-text {
     background: rgba(255, 149, 0, 0.15);
     border-color: rgba(255, 149, 0, 0.4);
+}
+
+/* Mobile responsive disclaimer */
+@media (max-width: 768px) {
+    .footer .disclaimer-text {
+        font-size: var(--font-size-xs);
+        max-width: 90%;
+        padding: var(--spacing-xs);
+    }
 }
 
 .theme-toggle {
@@ -1323,7 +1335,10 @@ tr:hover td {
     text-align: center;
     line-height: 1.4;
     margin: 0 auto;
-    display: block;
+    display: inline-block;
+    white-space: normal;
+    word-break: break-word;
+    box-sizing: border-box;
 }
 
 /* Dark theme footer */
