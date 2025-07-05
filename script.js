@@ -462,23 +462,24 @@ function clearOldData() {
     const dataVersion = localStorage.getItem('fmea_data_version');
     const savedComponents = localStorage.getItem('fmea_components');
 
-    // If no version marker or old automotive data exists, clear it
-    if (!dataVersion || dataVersion !== 'banking_v1') {
+    // If no version marker or old data exists, clear it
+    if (!dataVersion || dataVersion !== 'personal_finance_ai_v1') {
         if (savedComponents) {
             const parsedComponents = JSON.parse(savedComponents);
-            // Check if old automotive data exists
-            if (parsedComponents.includes('Engine') || parsedComponents.includes('Brake System') || parsedComponents.includes('Fuel System')) {
+            // Check if old data exists (automotive, banking, etc.)
+            if (parsedComponents.includes('Engine') || parsedComponents.includes('Brake System') ||
+                parsedComponents.includes('ATM Network') || parsedComponents.includes('Core Banking System')) {
                 localStorage.removeItem('fmea_components');
                 localStorage.removeItem('fmea_analyses');
                 localStorage.removeItem('fmea_data_version');
-                console.log('Cleared old automotive demo data, loading banking data');
+                console.log('Cleared old demo data, loading Personal Finance AI data');
                 return true;
             }
         }
-        // Also clear if no version marker exists
-        if (!dataVersion) {
+        // Also clear if no version marker exists or different version
+        if (!dataVersion || dataVersion !== 'personal_finance_ai_v1') {
             localStorage.clear();
-            console.log('No version marker found, clearing all data for banking update');
+            console.log('Updating to Personal Finance AI demo data');
             return true;
         }
     }
@@ -489,82 +490,82 @@ function clearOldData() {
 function addSampleData() {
     const clearedOldData = clearOldData();
     if (components.length === 0 && analyses.length === 0 || clearedOldData) {
-        // Add sample banking components
-        components = ['ATM Network', 'Online Banking Platform', 'Payment Processing', 'Core Banking System', 'Security Infrastructure'];
+        // Add sample Personal Finance Management AI components
+        components = ['AI Expense Categorization', 'Smart Budget Advisor', 'Fraud Detection AI', 'Investment Recommendation Engine', 'Credit Score Predictor'];
 
-        // Add sample banking analyses
+        // Add sample Personal Finance Management AI analyses
         analyses = [
             {
                 id: Date.now() + 1,
-                component: 'ATM Network',
-                function: 'Provide 24/7 cash withdrawal and banking services',
-                failureMode: 'ATM communication failure',
-                failureEffect: 'Customer unable to access funds, service disruption',
-                failureCause: 'Network connectivity issues or server downtime',
-                severity: 8,
-                occurrence: 4,
-                detection: 6,
-                rpn: 192
-            },
-            {
-                id: Date.now() + 2,
-                component: 'Online Banking Platform',
-                function: 'Enable secure digital banking transactions',
-                failureMode: 'Authentication system failure',
-                failureEffect: 'Customers locked out, potential security breach',
-                failureCause: 'Database corruption or authentication server failure',
-                severity: 9,
-                occurrence: 3,
-                detection: 7,
-                rpn: 189
-            },
-            {
-                id: Date.now() + 3,
-                component: 'Payment Processing',
-                function: 'Process credit/debit card transactions',
-                failureMode: 'Transaction processing delay',
-                failureEffect: 'Payment failures, customer dissatisfaction',
-                failureCause: 'High transaction volume or system overload',
+                component: 'AI Expense Categorization',
+                function: 'Automatically categorize user transactions using machine learning',
+                failureMode: 'AI model misclassifies transactions',
+                failureEffect: 'Incorrect budget tracking, poor financial insights',
+                failureCause: 'Insufficient training data or model drift over time',
                 severity: 7,
                 occurrence: 5,
                 detection: 4,
                 rpn: 140
             },
             {
+                id: Date.now() + 2,
+                component: 'Smart Budget Advisor',
+                function: 'Provide AI-powered personalized budget recommendations',
+                failureMode: 'Budget recommendations are unrealistic or harmful',
+                failureEffect: 'User financial stress, loss of trust in AI system',
+                failureCause: 'Algorithm bias or incomplete user financial profile',
+                severity: 8,
+                occurrence: 3,
+                detection: 6,
+                rpn: 144
+            },
+            {
+                id: Date.now() + 3,
+                component: 'Fraud Detection AI',
+                function: 'Real-time detection of suspicious financial activities',
+                failureMode: 'AI fails to detect fraudulent transactions',
+                failureEffect: 'Financial losses, compromised user accounts',
+                failureCause: 'Sophisticated fraud patterns not in training data',
+                severity: 9,
+                occurrence: 3,
+                detection: 5,
+                rpn: 135
+            },
+            {
                 id: Date.now() + 4,
-                component: 'Core Banking System',
-                function: 'Manage customer accounts and transactions',
-                failureMode: 'Database synchronization failure',
-                failureEffect: 'Incorrect account balances, transaction errors',
-                failureCause: 'Database replication lag or corruption',
+                component: 'Investment Recommendation Engine',
+                function: 'AI-driven personalized investment portfolio suggestions',
+                failureMode: 'AI recommends high-risk investments inappropriately',
+                failureEffect: 'User financial losses, regulatory compliance issues',
+                failureCause: 'Risk tolerance assessment errors or market volatility',
                 severity: 9,
                 occurrence: 2,
-                detection: 6,
-                rpn: 108
+                detection: 7,
+                rpn: 126
             },
             {
                 id: Date.now() + 5,
-                component: 'Security Infrastructure',
-                function: 'Protect against cyber threats and fraud',
-                failureMode: 'Fraud detection system bypass',
-                failureEffect: 'Unauthorized transactions, financial losses',
-                failureCause: 'Outdated fraud patterns or system configuration error',
-                severity: 10,
-                occurrence: 2,
+                component: 'Credit Score Predictor',
+                function: 'Predict credit score changes using AI analytics',
+                failureMode: 'AI provides inaccurate credit score predictions',
+                failureEffect: 'Poor financial decisions, missed opportunities',
+                failureCause: 'Outdated credit bureau data or model overfitting',
+                severity: 6,
+                occurrence: 4,
                 detection: 5,
-                rpn: 100
+                rpn: 120
             },
             {
                 id: Date.now() + 6,
-                component: 'Online Banking Platform',
-                function: 'Provide mobile banking services',
-                failureMode: 'Mobile app crashes',
-                failureEffect: 'Service unavailable, customer frustration',
-                failureCause: 'Software bugs or insufficient server capacity',
-                severity: 6,
-                occurrence: 4,
+                component: 'Smart Budget Advisor',
+                function: 'Send AI-powered spending alerts and notifications',
+                failureMode: 'AI sends excessive or irrelevant notifications',
+                failureEffect: 'User notification fatigue, system abandonment',
+                failureCause: 'Poor notification threshold tuning or user preference learning',
+                severity: 5,
+                occurrence: 6,
                 detection: 3,
-                rpn: 72
+                rpn: 90
             }
         ];
 
@@ -572,13 +573,13 @@ function addSampleData() {
         window.components = components;
         window.analyses = analyses;
 
-        // Set version marker for banking data
-        localStorage.setItem('fmea_data_version', 'banking_v1');
+        // Set version marker for Personal Finance AI data
+        localStorage.setItem('fmea_data_version', 'personal_finance_ai_v1');
 
         saveData();
         updateComponentsList();
         updateComponentSelect();
-        showNotification('Banking demo data loaded successfully', 'success');
+        showNotification('Personal Finance AI demo data loaded successfully', 'success');
     }
 }
 
