@@ -83,8 +83,17 @@ function deleteComponent(name) {
 }
 
 function editAnalysis(analysisId) {
-    const analysis = analyses.find(a => a.id === analysisId);
-    if (!analysis) return;
+    console.log('Edit analysis called with ID:', analysisId);
+    console.log('Available analyses:', analyses);
+
+    const analysis = analyses.find(a => a.id == analysisId); // Use == to handle string/number comparison
+    if (!analysis) {
+        console.error('Analysis not found with ID:', analysisId);
+        showNotification('Analysis not found!', 'error');
+        return;
+    }
+
+    console.log('Found analysis:', analysis);
 
     // Store the analysis being edited
     window.editingAnalysisId = analysisId;
@@ -127,6 +136,10 @@ function editAnalysis(analysisId) {
     showNotification(`Editing analysis: ${analysis.component} - ${analysis.failureMode}`, 'info');
 }
 
+// Make sure functions are globally accessible
+window.editAnalysis = editAnalysis;
+window.deleteAnalysis = deleteAnalysis;
+
 function showCancelEditButton() {
     // Check if cancel button already exists
     if (document.getElementById('cancelEditBtn')) return;
@@ -168,7 +181,7 @@ function cancelEdit() {
 }
 
 function deleteAnalysis(analysisId) {
-    const analysis = analyses.find(a => a.id === analysisId);
+    const analysis = analyses.find(a => a.id == analysisId); // Use == to handle string/number comparison
     if (!analysis) return;
 
     if (confirm(`Delete analysis for "${analysis.component} - ${analysis.failureMode}"?\n\nThis will also update the fault tree.`)) {
@@ -243,7 +256,7 @@ function submitAnalysis(event) {
 
     if (window.editingAnalysisId) {
         // Update existing analysis
-        const index = analyses.findIndex(a => a.id === window.editingAnalysisId);
+        const index = analyses.findIndex(a => a.id == window.editingAnalysisId); // Use == to handle string/number comparison
         if (index !== -1) {
             analyses[index] = { ...analysisData, id: window.editingAnalysisId };
             showNotification('Analysis updated successfully!', 'success');
