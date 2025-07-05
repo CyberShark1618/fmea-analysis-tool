@@ -18,6 +18,8 @@ class FaultTreeModule {
         this.renderCache = new Map();
         this.visibleNodes = [];
         this.needsRedraw = true;
+        this.lastHoverCheck = 0;
+        this.hoverThrottle = 16; // ~60fps max for hover checks
 
         this.init();
     }
@@ -195,16 +197,25 @@ class FaultTreeModule {
         }
     }
 
-    // Start optimized render loop
+    // Start optimized render loop - ONLY when needed
     startRenderLoop() {
-        const render = () => {
-            if (this.needsRedraw) {
-                this.draw();
-                this.needsRedraw = false;
-            }
-            this.animationFrame = requestAnimationFrame(render);
-        };
-        render();
+        if (this.needsRedraw) {
+            this.draw();
+            this.needsRedraw = false;
+        }
+    }
+
+    // Request single frame when needed
+    requestRedraw() {
+        if (!this.needsRedraw) {
+            this.needsRedraw = true;
+            requestAnimationFrame(() => {
+                if (this.needsRedraw) {
+                    this.draw();
+                    this.needsRedraw = false;
+                }
+            });
+        }
     }
 
     // Main draw function
@@ -239,29 +250,29 @@ class FaultTreeModule {
         }
     }
 
-    // Draw a single node
+    // Draw a single node (optimized)
     drawNode(node) {
         const ctx = this.ctx;
         const x = node.x - this.nodeWidth / 2;
         const y = node.y - this.nodeHeight / 2;
         const isHovered = this.hoveredNode === node;
 
+        // Viewport culling - skip if node is off-screen
+        const canvasWidth = this.canvas.width / window.devicePixelRatio;
+        const canvasHeight = this.canvas.height / window.devicePixelRatio;
+        const nodeScreenX = (node.x * this.currentTransform.k) + this.currentTransform.x;
+        const nodeScreenY = (node.y * this.currentTransform.k) + this.currentTransform.y;
+
+        if (nodeScreenX < -this.nodeWidth || nodeScreenX > canvasWidth + this.nodeWidth ||
+            nodeScreenY < -this.nodeHeight || nodeScreenY > canvasHeight + this.nodeHeight) {
+            return; // Skip off-screen nodes
+        }
+
         // Get colors based on node type and theme
         const colors = this.getNodeColors(node, isHovered);
 
-        // Draw node rectangle with rounded corners
-        ctx.save();
-
-        // Shadow for depth
-        if (isHovered) {
-            ctx.shadowColor = colors.shadow;
-            ctx.shadowBlur = 15;
-            ctx.shadowOffsetY = 5;
-        }
-
+        // Draw node rectangle with rounded corners (no expensive shadows)
         this.drawRoundedRect(ctx, x, y, this.nodeWidth, this.nodeHeight, 8, colors.fill, colors.stroke);
-
-        ctx.restore();
 
         // Draw text
         ctx.fillStyle = colors.text;
@@ -439,7 +450,7 @@ class FaultTreeModule {
         }
 
         this.calculateLayout(this.treeData);
-        this.needsRedraw = true;
+        this.requestRedraw();
     }
 
     // Expand all nodes
@@ -448,7 +459,7 @@ class FaultTreeModule {
             this.expandedNodes.add(id);
         });
         this.calculateLayout(this.treeData);
-        this.needsRedraw = true;
+        this.requestRedraw();
         this.showNotification('Full fault tree expanded - all failure paths visible', 'info');
     }
 
@@ -457,7 +468,7 @@ class FaultTreeModule {
         this.expandedNodes.clear();
         this.expandedNodes.add(this.treeData.id); // Keep root expanded
         this.calculateLayout(this.treeData);
-        this.needsRedraw = true;
+        this.requestRedraw();
         this.showNotification('Tree collapsed to root level', 'info');
     }
 
@@ -520,15 +531,19 @@ class FaultTreeModule {
                 this.currentTransform.x += dx;
                 this.currentTransform.y += dy;
 
-                this.needsRedraw = true;
+                this.requestRedraw();
                 startPoint = mousePos;
             } else {
-                // Handle hover
-                const hoveredNode = this.getNodeAtPoint(mousePos.x, mousePos.y);
-                if (hoveredNode !== this.hoveredNode) {
-                    this.hoveredNode = hoveredNode;
-                    this.needsRedraw = true;
-                    this.canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+                // Throttled hover detection for performance
+                const now = Date.now();
+                if (now - this.lastHoverCheck > this.hoverThrottle) {
+                    const hoveredNode = this.getNodeAtPoint(mousePos.x, mousePos.y);
+                    if (hoveredNode !== this.hoveredNode) {
+                        this.hoveredNode = hoveredNode;
+                        this.requestRedraw();
+                        this.canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+                    }
+                    this.lastHoverCheck = now;
                 }
             }
         });
@@ -554,7 +569,7 @@ class FaultTreeModule {
             this.currentTransform.x = mouseX - (mouseX - this.currentTransform.x) * scaleChange;
             this.currentTransform.y = mouseY - (mouseY - this.currentTransform.y) * scaleChange;
 
-            this.needsRedraw = true;
+            this.requestRedraw();
         });
 
         // Touch events for mobile
@@ -587,7 +602,7 @@ class FaultTreeModule {
                 this.currentTransform.x += dx;
                 this.currentTransform.y += dy;
 
-                this.needsRedraw = true;
+                this.requestRedraw();
                 startPoint = touchPos;
             }
         });
@@ -690,7 +705,7 @@ class FaultTreeModule {
     resetZoom() {
         this.currentTransform = { x: 0, y: 0, k: 1 };
         this.centerTree();
-        this.needsRedraw = true;
+        this.requestRedraw();
         this.showNotification('View reset', 'info');
     }
 
@@ -701,7 +716,7 @@ class FaultTreeModule {
         const containerRect = this.canvas.getBoundingClientRect();
         this.currentTransform.x = containerRect.width / 2 - 400;
         this.currentTransform.y = 50;
-        this.needsRedraw = true;
+        this.requestRedraw();
     }
 
     // Cleanup function

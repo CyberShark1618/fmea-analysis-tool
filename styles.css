@@ -1098,10 +1098,12 @@ tr:hover td {
     line-height: 1.5;
 }
 
-/* Canvas-based Fault Tree Styles */
+/* Canvas-based Fault Tree Styles - Performance Optimized */
 .fault-tree-canvas-element {
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
+    will-change: transform;
+    transform: translateZ(0); /* Force hardware acceleration */
 }
 
 /* Zoom Controls */
