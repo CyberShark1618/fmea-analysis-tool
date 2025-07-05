@@ -9,12 +9,7 @@
 <body class="light-theme">
     <div class="container">
         <header class="header">
-            <div class="header-content">
-                <h1>🤖 Personal Finance AI - FMEA Tool</h1>
-                <div class="demo-disclaimer">
-                    <span class="disclaimer-text">⚠️ Demo Data Only - Not Real Financial Information</span>
-                </div>
-            </div>
+            <h1>🔧 FMEA Tool</h1>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
                 <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
@@ -52,7 +47,7 @@
         <div id="analysis" class="section">
             <div class="card">
                 <h2>FMEA Analysis</h2>
-                <form onsubmit="submitAnalysis(event)">
+                <form id="analysisForm" onsubmit="submitAnalysis(event)">
                     <div class="form-row">
                         <div class="input-group">
                             <label for="component">Component:</label>
@@ -179,6 +174,9 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
+            <div class="demo-disclaimer">
+                <span class="disclaimer-text">⚠️ Demo Data Only - Personal Finance AI scenarios are fictional and not real financial information</span>
+            </div>
             <p>&copy; 2025 Created by Bence Varga. All rights reserved.</p>
         </div>
     </footer>

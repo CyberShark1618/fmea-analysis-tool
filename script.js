@@ -89,6 +89,12 @@ function editAnalysis(analysisId) {
     // Store the analysis being edited
     window.editingAnalysisId = analysisId;
 
+    // Ensure component exists in the dropdown
+    if (!components.includes(analysis.component)) {
+        components.push(analysis.component);
+        updateComponentSelect();
+    }
+
     // Populate the form with existing data
     document.getElementById('component').value = analysis.component;
     document.getElementById('function').value = analysis.function;
@@ -107,8 +113,10 @@ function editAnalysis(analysisId) {
 
     // Change submit button to update mode
     const submitBtn = document.querySelector('#analysisForm button[type="submit"]');
-    submitBtn.textContent = 'Update Analysis';
-    submitBtn.style.background = 'linear-gradient(135deg, #FF9500, #FF6B35)';
+    if (submitBtn) {
+        submitBtn.textContent = 'Update Analysis';
+        submitBtn.style.background = 'linear-gradient(135deg, #FF9500, #FF6B35)';
+    }
 
     // Show cancel edit button
     showCancelEditButton();
@@ -145,8 +153,10 @@ function cancelEdit() {
 
     // Reset submit button
     const submitBtn = document.querySelector('#analysisForm button[type="submit"]');
-    submitBtn.textContent = 'Add Analysis';
-    submitBtn.style.background = '';
+    if (submitBtn) {
+        submitBtn.textContent = 'Add Analysis';
+        submitBtn.style.background = '';
+    }
 
     // Remove cancel button
     const cancelBtn = document.getElementById('cancelEditBtn');

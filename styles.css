@@ -239,12 +239,6 @@ body::before {
     border-color: rgba(0, 122, 255, 0.3);
 }
 
-.header-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-}
-
 .header h1 {
     font-size: var(--font-size-2xl);
     font-weight: 700;
@@ -1303,6 +1297,9 @@ tr:hover td {
     margin: 0 auto;
     padding: 0 var(--spacing-xl);
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
 }
 
 .footer-content p {
@@ -1312,6 +1309,21 @@ tr:hover td {
     font-weight: 500;
     letter-spacing: 0.5px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer disclaimer styling */
+.footer .demo-disclaimer {
+    justify-content: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.footer .disclaimer-text {
+    font-size: var(--font-size-xs);
+    max-width: 600px;
+    text-align: center;
+    line-height: 1.4;
+    margin: 0 auto;
+    display: block;
 }
 
 /* Dark theme footer */
