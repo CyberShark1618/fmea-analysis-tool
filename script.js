@@ -353,9 +353,38 @@ function toggleTheme() {
     setTheme(newTheme);
 }
 
+// Clear old automotive data and force banking data
+function clearOldData() {
+    const dataVersion = localStorage.getItem('fmea_data_version');
+    const savedComponents = localStorage.getItem('fmea_components');
+
+    // If no version marker or old automotive data exists, clear it
+    if (!dataVersion || dataVersion !== 'banking_v1') {
+        if (savedComponents) {
+            const parsedComponents = JSON.parse(savedComponents);
+            // Check if old automotive data exists
+            if (parsedComponents.includes('Engine') || parsedComponents.includes('Brake System') || parsedComponents.includes('Fuel System')) {
+                localStorage.removeItem('fmea_components');
+                localStorage.removeItem('fmea_analyses');
+                localStorage.removeItem('fmea_data_version');
+                console.log('Cleared old automotive demo data, loading banking data');
+                return true;
+            }
+        }
+        // Also clear if no version marker exists
+        if (!dataVersion) {
+            localStorage.clear();
+            console.log('No version marker found, clearing all data for banking update');
+            return true;
+        }
+    }
+    return false;
+}
+
 // Add sample data for demonstration
 function addSampleData() {
-    if (components.length === 0 && analyses.length === 0) {
+    const clearedOldData = clearOldData();
+    if (components.length === 0 && analyses.length === 0 || clearedOldData) {
         // Add sample banking components
         components = ['ATM Network', 'Online Banking Platform', 'Payment Processing', 'Core Banking System', 'Security Infrastructure'];
 
@@ -439,10 +468,13 @@ function addSampleData() {
         window.components = components;
         window.analyses = analyses;
 
+        // Set version marker for banking data
+        localStorage.setItem('fmea_data_version', 'banking_v1');
+
         saveData();
         updateComponentsList();
         updateComponentSelect();
-        showNotification('Sample data loaded for demonstration', 'info');
+        showNotification('Banking demo data loaded successfully', 'success');
     }
 }
 
