@@ -247,13 +247,24 @@ function updateComponentSelect() {
 }
 
 function calculateRPN() {
-    const severity = parseInt(document.getElementById('severity').value) || 1;
-    const occurrence = parseInt(document.getElementById('occurrence').value) || 1;
-    const detection = parseInt(document.getElementById('detection').value) || 1;
-    
-    const rpn = severity * occurrence * detection;
-    document.getElementById('rpnDisplay').textContent = rpn;
-    return rpn;
+    const severityValue = document.getElementById('severity').value;
+    const occurrenceValue = document.getElementById('occurrence').value;
+    const detectionValue = document.getElementById('detection').value;
+
+    // Only calculate if all fields have values
+    if (severityValue && occurrenceValue && detectionValue) {
+        const severity = parseInt(severityValue);
+        const occurrence = parseInt(occurrenceValue);
+        const detection = parseInt(detectionValue);
+
+        const rpn = severity * occurrence * detection;
+        document.getElementById('rpnDisplay').textContent = rpn;
+        return rpn;
+    } else {
+        // Show placeholder when fields are empty
+        document.getElementById('rpnDisplay').textContent = '-';
+        return 0;
+    }
 }
 
 function submitAnalysis(event) {
@@ -305,10 +316,10 @@ function clearForm() {
     document.getElementById('failureMode').value = '';
     document.getElementById('failureEffect').value = '';
     document.getElementById('failureCause').value = '';
-    document.getElementById('severity').value = '5';
-    document.getElementById('occurrence').value = '5';
-    document.getElementById('detection').value = '5';
-    calculateRPN();
+    document.getElementById('severity').value = '';
+    document.getElementById('occurrence').value = '';
+    document.getElementById('detection').value = '';
+    calculateRPN(); // This will show '-' since fields are empty
 }
 
 // Debounced version of displayResults for better performance
