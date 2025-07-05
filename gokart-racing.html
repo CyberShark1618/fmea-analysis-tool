@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏁 Gokart Legends</title>
+    <link rel="stylesheet" href="gokart-styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🏁 Gokart Legends</div>
+            <div class="user-info">
+                <span id="welcomeUser" class="hidden"></span>
+                <button id="loginBtn" class="btn" onclick="showQuickLogin()">Bejelentkezés</button>
+                <button id="logoutBtn" class="btn hidden" onclick="logout()">Kijelentkezés</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">🏁 Főoldal</button>
+            <button class="nav-tab" onclick="showTab('tracks')">🏁 Pályák</button>
+            <button class="nav-tab" onclick="showTab('drivers')">👤 Versenyzők</button>
+            <button class="nav-tab" onclick="showTab('events')">📅 Versenyek</button>
+            <button class="nav-tab" onclick="showTab('leaderboard')">🏆 Bajnokság</button>
+            <button class="nav-tab" onclick="showTab('profile')">📊 Statisztikák</button>
+        </nav>
+
+        <main id="appContent">
+            <!-- Dashboard Tab -->
+            <section id="dashboard" class="tab-content active">
+                <div class="card">
+                    <h2>🏁 Üdvözöl a Gokart Legends!</h2>
+                    <p>Szervezd és kövesd nyomon go-kart versenyeidet barátaiddal. Hozz létre versenyeket, kezelj pályákat és versenyzőket, és versenyezz a bajnoki címért!</p>
+
+                    <div class="stats-grid">
+                        <div class="stat-card clickable-card" onclick="showTab('events')" title="Versenyek kezelése">
+                            <span class="stat-number" id="totalEvents">0</span>
+                            <span class="stat-label">Versenyek</span>
+                        </div>
+                        <div class="stat-card clickable-card" onclick="showTab('drivers')" title="Versenyzők kezelése">
+                            <span class="stat-number" id="totalDrivers">0</span>
+                            <span class="stat-label">Versenyzők</span>
+                        </div>
+                        <div class="stat-card clickable-card" onclick="showTab('tracks')" title="Pályák kezelése">
+                            <span class="stat-number" id="totalTracks">0</span>
+                            <span class="stat-label">Pályák</span>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-buttons">
+                        <button class="btn-stats" onclick="showTab('profile')">📊 Statisztikáim Megtekintése</button>
+                        <button class="btn-leaderboard" onclick="showTab('leaderboard')">🏆 Tabella Megtekintése</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section-header">
+                        <h3>📅 Közelgő Versenyek</h3>
+                        <button class="btn btn-small" onclick="showCreateEvent()">+ Új Verseny</button>
+                    </div>
+                    <div id="upcomingEvents">Nincsenek közelgő versenyek</div>
+                </div>
+            </section>
+
+            <!-- Tracks Tab -->
+            <section id="tracks" class="tab-content">
+                <div class="card">
+                    <div class="section-header-large">
+                        <h2>🏁 Pályakezelés</h2>
+                        <button class="btn" onclick="showAddTrack()">+ Pálya Hozzáadása</button>
+                    </div>
+                    <div id="tracksList" class="grid"></div>
+                </div>
+            </section>
+
+            <!-- Drivers Tab -->
+            <section id="drivers" class="tab-content">
+                <div class="card">
+                    <div class="section-header-large">
+                        <h2>👥 Versenyző Kezelés</h2>
+                        <button class="btn" onclick="showAddDriver()">+ Versenyző Hozzáadása</button>
+                    </div>
+                    <div id="driversList" class="grid"></div>
+                </div>
+            </section>
+
+            <!-- Events Tab -->
+            <section id="events" class="tab-content">
+                <div class="card">
+                    <div class="section-header-large">
+                        <h2>📅 Verseny Kezelés</h2>
+                        <button class="btn" onclick="showCreateEvent()">+ Verseny Létrehozása</button>
+                    </div>
+                    <div id="eventsList" class="grid"></div>
+                </div>
+            </section>
+
+            <!-- Leaderboard Tab -->
+            <section id="leaderboard" class="tab-content">
+                <div class="card">
+                    <h2>🏆 Bajnoki Tabella</h2>
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Helyezés</th>
+                                <th>Versenyző</th>
+                                <th>Futamok</th>
+                                <th>Győzelmek</th>
+                                <th>Dobogók</th>
+                                <th>Leggyorsabb Körök</th>
+                                <th>Pontok</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Profile Tab -->
+            <section id="profile" class="tab-content">
+                <div class="card">
+                    <h2>📊 Statisztikák</h2>
+                    <div id="profileStats"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="quickLoginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('quickLoginModal')">&times;</span>
+            <h2>Versenyző Kiválasztása</h2>
+            <p>Válassz egy versenyzőt vagy hozz létre újat:</p>
+            <div id="driverSelectionList"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn" onclick="showAddDriverInLogin()">+ Új Versenyző Hozzáadása</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('quickLoginModal')">Mégse</button>
+            </div>
+            <div id="addDriverForm" class="add-driver-form">
+                <h3>Új Versenyző</h3>
+                <form id="newDriverForm">
+                    <div class="form-group">
+                        <label for="newDriverName">Teljes Név:</label>
+                        <input type="text" id="newDriverName" class="form-control" placeholder="Teljes neved..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newDriverNickname">Becenév:</label>
+                        <input type="text" id="newDriverNickname" class="form-control" placeholder="Beceneved..." required>
+                    </div>
+                    <button type="submit" class="btn">Versenyző Létrehozása és Bejelentkezés</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideAddDriverInLogin()">Vissza</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="bugReportModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('bugReportModal')">&times;</span>
+            <h2>🐛 Hiba Jelentése</h2>
+            <p>Találtál egy hibát? Segíts nekünk javítani!</p>
+            <form id="bugReportForm">
+                <div class="form-group">
+                    <label for="bugTitle">Hiba címe:</label>
+                    <input type="text" id="bugTitle" class="form-control" placeholder="Rövid leírás a hibáról..." required>
+                </div>
+                <div class="form-group">
+                    <label for="bugDescription">Részletes leírás:</label>
+                    <textarea id="bugDescription" class="form-control" rows="4" placeholder="Írd le részletesen, mit tapasztaltál..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="bugSteps">Lépések a hiba reprodukálásához:</label>
+                    <textarea id="bugSteps" class="form-control" rows="3" placeholder="1. Kattints erre...&#10;2. Majd arra...&#10;3. Ekkor történik a hiba..."></textarea>
+                </div>
+                <button type="submit" class="btn">Hiba Beküldése</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('bugReportModal')">Mégse</button>
+            </form>
+            <div class="bug-reports-section">
+                <h3>📋 Beküldött Hibák</h3>
+                <div id="bugList" class="bug-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p class="copyright">© 2025 Gokart Legends - Minden jog fenntartva</p>
+        <p class="creator">Made with ❤️ by Bence Varga</p>
+        <p class="fun-message">🏁 Versenyezz, győzz, és légy legenda! 🏁</p>
+    </footer>
+
+    <!-- Bug Report Button -->
+    <button class="bug-report-btn" onclick="showBugReport()" title="Hiba jelentése">🐛</button>
+
+    <script src="api-client.js"></script>
+    <script src="gokart-script.js"></script>
+</body>
+</html>

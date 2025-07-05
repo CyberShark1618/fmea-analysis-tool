@@ -40,3 +40,46 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Go-Kart Racing App - PHP specific
+# Sensitive configuration files
+config.php
+
+# Create a template instead
+!config.example.php
+
+# Database backups
+*.sql.backup
+*.sql.bak
+
+# Logs
+*.log
+error_log
+access_log
+
+# PHP specific
+vendor/
+composer.lock
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Cache files
+cache/
+tmp/
+
+# User uploads (if you add file upload functionality)
+uploads/
+files/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Development files
+test.php
+debug.php
+phpinfo.php
